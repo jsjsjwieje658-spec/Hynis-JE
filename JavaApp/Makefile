@@ -14,7 +14,7 @@ JCFLAGS := -cp "$(subst $() $(),:,$(wildcard $(SOURCEDIR)/*/):$(wildcard libs/*/
 all: $(TARGETS)
 	
 # Sometimes the CI produces empty class file resulting in broken jar, so we check and abort here
-check_empty_classes:
+check_empty_classes: $(CLASSES)
 	@set -e
 	@echo "Checking for empty class files"
 	$(eval EMPTY_CLASSES := $(shell find $(OUTPUTDIR) -name '*.class' -size 0))
