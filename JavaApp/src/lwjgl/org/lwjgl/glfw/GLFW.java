@@ -644,6 +644,33 @@ public class GLFW
         return lastCallback;
     }
 
+    // GLFW 3.4 IME APIs, backported so Minecraft 26.1 (LWJGL 3.4 API) can link.
+    // The iOS input bridge never emits preedit/IME events, so the registered
+    // callbacks are simply stored (and never invoked); like the GLFW 3.3 stubs
+    // above, they only need to exist with the right shape. Returns the
+    // previously set callback, per GLFW semantics.
+    /* volatile */ public static GLFWPreeditCallback mGLFWPreeditCallback;
+    /* volatile */ public static GLFWIMEStatusCallback mGLFWIMEStatusCallback;
+
+    public static GLFWPreeditCallback glfwSetPreeditCallback(@NativeType("GLFWwindow *") long window, @Nullable @NativeType("GLFWpreeditfun") GLFWPreeditCallbackI cbfun) {
+        GLFWPreeditCallback lastCallback = mGLFWPreeditCallback;
+        if (cbfun == null) mGLFWPreeditCallback = null;
+        else mGLFWPreeditCallback = GLFWPreeditCallback.create(cbfun);
+        return lastCallback;
+    }
+
+    public static GLFWIMEStatusCallback glfwSetIMEStatusCallback(@NativeType("GLFWwindow *") long window, @Nullable @NativeType("GLFWimestatusfun") GLFWIMEStatusCallbackI cbfun) {
+        GLFWIMEStatusCallback lastCallback = mGLFWIMEStatusCallback;
+        if (cbfun == null) mGLFWIMEStatusCallback = null;
+        else mGLFWIMEStatusCallback = GLFWIMEStatusCallback.create(cbfun);
+        return lastCallback;
+    }
+
+    /** GLFW 3.4: notifies the IME where to place its preedit popup. No native
+     * IME exists on this port, so this is a no-op that just satisfies the
+     * Minecraft 26.1 call in TextInputManager. */
+    public static void glfwSetPreeditCursorRectangle(@NativeType("GLFWwindow *") long window, int x, int y, int w, int h) { }
+
     public static GLFWCursorEnterCallback glfwSetCursorEnterCallback(@NativeType("GLFWwindow *") long window, @Nullable @NativeType("GLFWcursorenterfun") GLFWCursorEnterCallbackI cbfun) {
         GLFWCursorEnterCallback lastCallback = mGLFWCursorEnterCallback;
         if (cbfun == null) mGLFWCursorEnterCallback = null;
@@ -807,6 +834,14 @@ public class GLFW
 
     public static int glfwGetPlatform() {
         return GLFW_PLATFORM_X11;
+    }
+
+    /** Added in GLFW 3.4; Minecraft 26.1's GLX._initGlfw calls it while
+     * probing platforms. This port presents itself as X11 (see
+     * glfwGetPlatform above), so any platform other than X11 is
+     * unsupported, mirroring what the other stubs above do. */
+    public static boolean glfwPlatformSupported(int platform) {
+        return platform == GLFW_PLATFORM_X11;
     }
 
     @NativeType("GLFWwindow *")
