@@ -1123,7 +1123,13 @@ public class GLFW
     public static void glfwPostEmptyEvent() {}
 
     public static int glfwGetInputMode(@NativeType("GLFWwindow *") long window, int mode) {
-        return internalGetWindow(window).inputModes.get(mode);
+        // Backported for Minecraft 26.1: TextInputManager polls GLFW_IME_STATUS
+        // (0x33007, new in GLFW 3.4) before any value was ever set, which made
+        // the original unchecked unboxing throw NPE every tick. 0 (IME
+        // disabled) is the correct answer for this port, which never emits
+        // IME events.
+        Integer value = internalGetWindow(window).inputModes.get(mode);
+        return value == null ? 0 : value;
     }
 
     public static void glfwSetInputMode(@NativeType("GLFWwindow *") long window, int mode, int value) {
